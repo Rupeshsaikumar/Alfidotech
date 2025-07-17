@@ -1,0 +1,81 @@
+
+package com.example.weatherapp;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.view.View;
+import android.widget.*;
+import org.json.JSONObject;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText editTextCity;
+    Button buttonGetWeather;
+    TextView textViewResult;
+
+    String API_KEY = "YOUR_API_KEY_HERE"; // ?? Replace this with your real key
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Allow network call on main thread (only for small apps)
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        setContentView(R.layout.activity_main);
+
+        editTextCity = findViewById(R.id.editTextCity);
+        buttonGetWeather = findViewById(R.id.buttonGetWeather);
+        textViewResult = findViewById(R.id.textViewResult);
+
+        buttonGetWeather.setOnClickListener(v -> fetchWeather());
+    }
+
+    private void fetchWeather() {
+        String city = editTextCity.getText().toString().trim();
+        if (city.isEmpty()) {
+            textViewResult.setText("Please enter a city name.");
+            return;
+        }
+
+        String urlStr = "https://api.openweathermap.org/data/2.5/weather?q=" + city +
+                "&appid=" + API_KEY + "&units=metric";
+
+        try {
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            InputStream in = conn.getInputStream();
+            InputStreamReader reader = new InputStreamReader(in);
+
+            int data = reader.read();
+            StringBuilder result = new StringBuilder();
+
+            while (data != -1) {
+                result.append((char) data);
+                data = reader.read();
+            }
+
+            JSONObject jsonObject = new JSONObject(result.toString());
+            JSONObject main = jsonObject.getJSONObject("main");
+            JSONObject weather = jsonObject.getJSONArray("weather").getJSONObject(0);
+
+            String output = "City: " + jsonObject.getString("name") +
+                    "\nTemperature: " + main.getString("temp") + "°C" +
+                    "\nHumidity: " + main.getString("humidity") + "%" +
+                    "\nWeather: " + weather.getString("description");
+
+            textViewResult.setText(output);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            textViewResult.setText("Error fetching weather. Check city name or internet.");
+        }
+    }
+}
