@@ -1,0 +1,45 @@
+
+package com.example.todolistapp;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText editTextTask;
+    Button buttonAdd;
+    RecyclerView recyclerView;
+
+    ArrayList<String> taskList;
+    TaskAdapter adapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        editTextTask = findViewById(R.id.editTextTask);
+        buttonAdd = findViewById(R.id.buttonAdd);
+        recyclerView = findViewById(R.id.recyclerView);
+
+        taskList = new ArrayList<>();
+        adapter = new TaskAdapter(taskList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+        buttonAdd.setOnClickListener(v -> {
+            String task = editTextTask.getText().toString();
+            if (!task.isEmpty()) {
+                taskList.add(task);
+                adapter.notifyItemInserted(taskList.size() - 1);
+                editTextTask.setText("");
+            }
+        });
+    }
+}
